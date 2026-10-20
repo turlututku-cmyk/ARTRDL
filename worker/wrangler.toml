@@ -8,6 +8,8 @@ compatibility_date = "2025-09-01"
 ALLOWED_ORIGINS = "https://artrdl.pages.dev,http://localhost:5174"
 # Address of the list itself (used to check submitted levels against _list.json)
 SITE_URL = "https://artrdl.pages.dev"
+# SHA-256 hash of the owner token (the token itself is not stored anywhere in the repo)
+ADMIN_TOKEN_HASH = "5da32a4cd86046ce5b47c6a3d2ecec4fab21d2683bf7c9a6e5f6f3779ed9cd2f"
 
 # Create with: npx wrangler kv namespace create SUBMISSIONS
 # then paste the id it prints below.

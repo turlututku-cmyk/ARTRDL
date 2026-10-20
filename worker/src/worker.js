@@ -35,13 +35,13 @@ export default {
             }
 
             if (url.pathname === '/api/admin/submissions') {
-                if (!isOwner(request, env)) return json({ error: 'Not allowed.' }, 401, headers);
+                if (!(await isOwner(request, env))) return json({ error: 'Not allowed.' }, 401, headers);
                 if (request.method === 'GET') return await listSubmissions(env, headers);
             }
 
             const match = url.pathname.match(/^\/api\/admin\/submissions\/(.+)$/);
             if (match && request.method === 'POST') {
-                if (!isOwner(request, env)) return json({ error: 'Not allowed.' }, 401, headers);
+                if (!(await isOwner(request, env))) return json({ error: 'Not allowed.' }, 401, headers);
                 return await updateSubmission(decodeURIComponent(match[1]), request, env, headers);
             }
 
@@ -153,10 +153,18 @@ async function updateSubmission(id, request, env, headers) {
     return json(submission, 200, headers);
 }
 
-function isOwner(request, env) {
-    if (!env.ADMIN_TOKEN) return false;
+// The owner token is checked against a SHA-256 hash stored in wrangler.toml (ADMIN_TOKEN_HASH),
+// so the token itself is never kept in the repo.
+async function isOwner(request, env) {
+    if (!env.ADMIN_TOKEN_HASH) return false;
     const header = request.headers.get('Authorization') || '';
-    return constantTimeEqual(header, `Bearer ${env.ADMIN_TOKEN}`);
+    const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+    return constantTimeEqual(await sha256Hex(token), env.ADMIN_TOKEN_HASH);
+}
+
+async function sha256Hex(text) {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function constantTimeEqual(a, b) {
