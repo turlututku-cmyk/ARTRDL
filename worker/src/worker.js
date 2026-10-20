@@ -201,6 +201,7 @@ async function publicRecords(env, headers) {
             verifier: submission.verifier,
             tier: submission.tier ?? null,
             aredl: submission.aredl,
+            rating: submission.rating,
             verification: submission.link,
             records: [],
         });
@@ -218,12 +219,13 @@ async function gddlInfo(levelId) {
             Accept: 'application/json',
         },
     });
-    if (response.status === 404) return { tier: null, aredl: null };
+    if (response.status === 404) return { tier: null, aredl: null, rating: null };
     if (!response.ok) throw new Error(`GDDL answered ${response.status}`);
     const data = await response.json();
     return {
         tier: data.Rating == null ? null : Math.round(data.Rating),
         aredl: data.AREDLPosition ?? null,
+        rating: data.Rating ?? null,
     };
 }
 
@@ -267,6 +269,7 @@ async function updateSubmission(id, request, env, headers) {
                 const gddl = await gddlInfo(submission.levelId);
                 submission.tier = gddl.tier;
                 submission.aredl = gddl.aredl;
+                submission.rating = gddl.rating;
             } catch {
                 return json({ error: 'Could not get this level\'s tier from GDDL right now. Try again in a few minutes.' }, 502, headers);
             }

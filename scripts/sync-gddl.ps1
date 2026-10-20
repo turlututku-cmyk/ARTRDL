@@ -19,7 +19,9 @@ foreach ($path in $list) {
         $gddl = Invoke-RestMethod -Uri "https://gdladder.com/api/levels/$levelId" -Headers $headers -TimeoutSec 60
         $tier = if ($null -ne $gddl.Rating) { [int][math]::Round($gddl.Rating) } else { $null }
         $aredl = if ($null -ne $gddl.AREDLPosition) { [int]$gddl.AREDLPosition } else { $null }
-        $result[$path] = [ordered]@{ tier = $tier; aredl = $aredl }
+        # Exact rating, so levels that round to the same tier can still be ordered
+        $rating = if ($null -ne $gddl.Rating) { [math]::Round([double]$gddl.Rating, 4) } else { $null }
+        $result[$path] = [ordered]@{ tier = $tier; aredl = $aredl; rating = $rating }
         Write-Output "OK    $path (ID $levelId): tier $tier, AREDL $aredl"
     } catch {
         Write-Output "SKIP  $path : $($_.Exception.Message)"

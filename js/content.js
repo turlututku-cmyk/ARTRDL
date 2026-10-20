@@ -21,7 +21,7 @@ async function fetchAcceptedRecords() {
 }
 
 /**
- * Accepted new levels go into the list by GDDL tier: above the first level with a lower tier.
+ * Accepted new levels go into the list by GDDL rating, and extreme levels by their AREDL spot.
  * A level with no GDDL tier goes to the bottom. A level file with the same ID takes precedence,
  * so no level is shown twice.
  */
@@ -30,12 +30,21 @@ function addNewLevels(entries, newLevels = [], tiers = {}) {
         if (entries.some(([level]) => level && level.id === newLevel.id)) continue;
         const path = `new-${newLevel.id}`;
         const tier = newLevel.tier;
-        let index = entries.length;
-        if (tier != null) {
-            const found = entries.findIndex(([level]) => level && tiers[level.path]?.tier != null && tiers[level.path].tier < tier);
-            if (found >= 0) index = found;
+        // Extreme levels (tier 20+) go by their AREDL spot: a lower spot is harder
+        const isExtreme = (info) => info?.tier != null && info.tier >= 20;
+        let index = -1;
+        if (isExtreme({ tier }) && newLevel.aredl != null) {
+            index = entries.findIndex(([level]) => level && isExtreme(tiers[level.path]) && tiers[level.path].aredl != null && tiers[level.path].aredl > newLevel.aredl);
         }
-        tiers[path] = { tier };
+        // Everything else (and extremes without an AREDL spot) goes by exact GDDL rating,
+        // so 24.03 sorts above 23.98 even though both round to 24
+        const rating = newLevel.rating ?? tier;
+        const valueOf = (info) => info?.rating ?? info?.tier;
+        if (index < 0 && rating != null) {
+            index = entries.findIndex(([level]) => level && valueOf(tiers[level.path]) != null && valueOf(tiers[level.path]) < rating);
+        }
+        if (index < 0) index = entries.length;
+        tiers[path] = { tier, rating: newLevel.rating, aredl: newLevel.aredl };
         entries.splice(index, 0, [
             {
                 id: newLevel.id,
