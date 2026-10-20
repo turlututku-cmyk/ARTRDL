@@ -108,6 +108,19 @@
     display: flex;
     gap: 0.75rem;
 }
+.page-submit .remember {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+.page-submit .remember input {
+    width: auto;
+    margin: 0;
+}
+.page-submit .review-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
 .page-submit .record-snippet {
     overflow-x: auto;
     padding: 0.75rem;
