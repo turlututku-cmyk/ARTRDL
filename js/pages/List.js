@@ -208,7 +208,8 @@ export default {
 
         // Difficulty face follows the GDDL tier (levels with no GDDL tier keep their own "difficulty")
         this.list.forEach(([level]) => {
-            const tier = this.gddl[level?.path]?.tier;
+            // New levels carry their own tier; list levels use their GDDL tier
+            const tier = this.gddl[level?.path]?.tier ?? level?.tier;
             if (level && tier != null) level.difficulty = tierBand(tier);
         });
 
@@ -248,12 +249,12 @@ export default {
         difficultyIcon,
         difficultyLabel,
         gddlTier(level) {
-            const entry = this.gddl[level.path];
-            if (!entry) return '—';
-            return entry.tier ?? 'Unrated';
+            const tier = this.gddl[level.path]?.tier ?? level.tier;
+            if (tier != null) return tier;
+            return this.gddl[level.path] ? 'Unrated' : '—';
         },
         gddlBand(level) {
-            const tier = this.gddl[level.path]?.tier;
+            const tier = this.gddl[level.path]?.tier ?? level.tier;
             if (tier == null) return '—';
             return tierBandLabel(tierBand(tier));
         },

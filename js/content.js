@@ -46,6 +46,7 @@ function addNewLevels(entries, newLevels = [], tiers = {}) {
                 verification: newLevel.verification,
                 percentToQualify: '100',
                 device: 'pc',
+                tier,
                 path,
                 records: mergeRecords(newLevel.records),
             },
