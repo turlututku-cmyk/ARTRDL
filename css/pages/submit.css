@@ -108,6 +108,15 @@
     display: flex;
     gap: 0.75rem;
 }
+.page-submit .switch-mode {
+    align-self: flex-start;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--list-red);
+    cursor: pointer;
+    text-decoration: underline;
+}
 .page-submit .remember {
     flex-direction: row;
     align-items: center;

@@ -16,7 +16,7 @@ export default {
             <div class="submit-card">
                 <h1>Submit a record</h1>
                 <p class="type-label-md">Only the list owner sees submissions. Accepted records are added to the list by hand.</p>
-                <p v-if="!store.username && !sent" class="type-label-lg">Log in with a username to submit records. <router-link to="/login">Log in</router-link></p>
+                <p v-if="!store.username && !sent" class="type-label-lg">Log in to submit records. <router-link to="/login">Log in</router-link></p>
                 <form v-if="!sent && store.username" @submit.prevent="submit">
                     <label class="field">
                         <span class="type-label-lg">Player name</span>
@@ -70,7 +70,10 @@ export default {
             try {
                 const response = await fetch(`${SUBMISSION_API}/api/submissions`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${this.store.token}`,
+                    },
                     body: JSON.stringify({
                         ...this.form,
                         hz: this.form.hz === '' ? null : this.form.hz,

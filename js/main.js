@@ -1,19 +1,29 @@
 import routes from './routes.js';
 
+let session = null;
+try {
+    session = JSON.parse(localStorage.getItem('session'));
+} catch {
+    session = null;
+}
+
 export const store = Vue.reactive({
     dark: JSON.parse(localStorage.getItem('dark')) || false,
-    username: localStorage.getItem('username') || '',
+    username: session?.username || '',
+    token: session?.token || '',
     toggleDark() {
         this.dark = !this.dark;
         localStorage.setItem('dark', JSON.stringify(this.dark));
     },
-    setUsername(name) {
-        this.username = name;
-        localStorage.setItem('username', name);
+    setSession(username, token) {
+        this.username = username;
+        this.token = token;
+        localStorage.setItem('session', JSON.stringify({ username, token }));
     },
-    clearUsername() {
+    clearSession() {
         this.username = '';
-        localStorage.removeItem('username');
+        this.token = '';
+        localStorage.removeItem('session');
     },
 });
 

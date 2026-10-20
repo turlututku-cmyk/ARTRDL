@@ -1,8 +1,14 @@
 /**
  * Submission API for the list (Cloudflare Worker).
  *
- * Public
- *   POST /api/submissions                 the Submit Record form
+ * Accounts
+ *   POST /api/users/register              body {"username", "password"}; returns a session token
+ *   POST /api/users/login                 body {"username", "password"}; returns a session token
+ *   GET  /api/users/me                    needs "Authorization: Bearer <session token>"
+ *   POST /api/users/logout                ends the session
+ *
+ * Logged in (needs "Authorization: Bearer <session token>")
+ *   POST /api/submissions                 the Submit Record form; the player name is the account's
  *
  * Owner only (needs "Authorization: Bearer <ADMIN_TOKEN>")
  *   GET  /api/admin/submissions           every submission, newest first
@@ -29,6 +35,10 @@ export default {
 
         try {
             const url = new URL(request.url);
+
+            if (url.pathname.startsWith('/api/users/')) {
+                return await handleUsers(request, env, url.pathname, headers);
+            }
 
             if (request.method === 'POST' && url.pathname === '/api/submissions') {
                 return await createSubmission(request, env, headers);
@@ -68,7 +78,10 @@ async function createSubmission(request, env, headers) {
     // Honeypot: people leave this field empty, bots fill it in. Pretend success and drop it.
     if (body.website) return json({ id: 'received' }, 201, headers);
 
-    const result = await validate(body, env);
+    const session = await getSession(request, env);
+    if (!session) return json({ error: 'Log in to submit records.' }, 401, headers);
+
+    const result = await validate(body, env, session.username);
     if (result.error) return json({ error: result.error }, 400, headers);
 
     const id = `sub:${String(Date.now()).padStart(15, '0')}:${crypto.randomUUID()}`;
@@ -82,12 +95,8 @@ async function createSubmission(request, env, headers) {
     return json({ id }, 201, headers);
 }
 
-async function validate(body, env) {
-    const player = typeof body.player === 'string' ? body.player.trim() : '';
-    if (player.length < 1 || player.length > 32) {
-        return { error: 'Player name must be 1 to 32 characters.' };
-    }
-
+// The player name comes from the logged-in account, never from the form
+async function validate(body, env, player) {
     const level = typeof body.level === 'string' ? body.level : '';
     if (!LEVEL_PATH.test(level)) {
         return { error: 'Choose a level from the list.' };
@@ -174,6 +183,125 @@ function constantTimeEqual(a, b) {
         diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
     }
     return diff === 0;
+}
+
+const PASSWORD_ITERATIONS = 100000;
+const SESSION_SECONDS = 60 * 60 * 24 * 30;
+const USERNAME = /^[A-Za-z0-9_.-]{2,32}$/;
+
+async function handleUsers(request, env, pathname, headers) {
+    if (pathname === '/api/users/register' && request.method === 'POST') {
+        return await register(request, env, headers);
+    }
+    if (pathname === '/api/users/login' && request.method === 'POST') {
+        return await login(request, env, headers);
+    }
+    if (pathname === '/api/users/me' && request.method === 'GET') {
+        const session = await getSession(request, env);
+        if (!session) return json({ error: 'Not logged in.' }, 401, headers);
+        return json({ username: session.username }, 200, headers);
+    }
+    if (pathname === '/api/users/logout' && request.method === 'POST') {
+        const token = bearerToken(request);
+        if (token) await env.SUBMISSIONS.delete(`session:${await sha256Hex(token)}`);
+        return json({ ok: true }, 200, headers);
+    }
+    return json({ error: 'Not found.' }, 404, headers);
+}
+
+async function register(request, env, headers) {
+    const body = await readJson(request);
+    if (!body) return json({ error: 'Invalid request.' }, 400, headers);
+
+    const username = typeof body.username === 'string' ? body.username.trim() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
+    if (!USERNAME.test(username)) {
+        return json({ error: 'Username must be 2 to 32 letters, numbers, dots, dashes or underscores.' }, 400, headers);
+    }
+    if (password.length < 8 || password.length > 128) {
+        return json({ error: 'Password must be 8 to 128 characters.' }, 400, headers);
+    }
+
+    const key = `user:${username.toLowerCase()}`;
+    if (await env.SUBMISSIONS.get(key)) {
+        return json({ error: 'That username is taken.' }, 409, headers);
+    }
+
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const hash = await pbkdf2(password, salt, PASSWORD_ITERATIONS);
+    await env.SUBMISSIONS.put(key, JSON.stringify({
+        username,
+        salt: toBase64(salt),
+        hash: toBase64(hash),
+        iterations: PASSWORD_ITERATIONS,
+        createdAt: new Date().toISOString(),
+    }));
+    return await startSession(username, env, headers, 201);
+}
+
+async function login(request, env, headers) {
+    const body = await readJson(request);
+    if (!body) return json({ error: 'Invalid request.' }, 400, headers);
+
+    const username = typeof body.username === 'string' ? body.username.trim() : '';
+    const password = typeof body.password === 'string' ? body.password : '';
+    const account = await env.SUBMISSIONS.get(`user:${username.toLowerCase()}`, 'json');
+    // Same message whether the username or the password is wrong
+    if (!account) return json({ error: 'Wrong username or password.' }, 401, headers);
+
+    const hash = await pbkdf2(password, fromBase64(account.salt), account.iterations);
+    if (!constantTimeEqual(toBase64(hash), account.hash)) {
+        return json({ error: 'Wrong username or password.' }, 401, headers);
+    }
+    return await startSession(account.username, env, headers, 200);
+}
+
+async function startSession(username, env, headers, status) {
+    const token = toBase64Url(crypto.getRandomValues(new Uint8Array(32)));
+    await env.SUBMISSIONS.put(
+        `session:${await sha256Hex(token)}`,
+        JSON.stringify({ username }),
+        { expirationTtl: SESSION_SECONDS },
+    );
+    return json({ username, token }, status, headers);
+}
+
+// Only the hash of a session token is stored, so a copy of the storage can't be used to log in
+async function getSession(request, env) {
+    const token = bearerToken(request);
+    if (!token) return null;
+    return await env.SUBMISSIONS.get(`session:${await sha256Hex(token)}`, 'json');
+}
+
+function bearerToken(request) {
+    const header = request.headers.get('Authorization') || '';
+    return header.startsWith('Bearer ') ? header.slice(7) : '';
+}
+
+async function readJson(request) {
+    try {
+        return await request.json();
+    } catch {
+        return null;
+    }
+}
+
+async function pbkdf2(password, salt, iterations) {
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations, hash: 'SHA-256' }, key, 256);
+    return new Uint8Array(bits);
+}
+
+function toBase64(bytes) {
+    return btoa(String.fromCharCode(...bytes));
+}
+
+function fromBase64(text) {
+    return Uint8Array.from(atob(text), (char) => char.charCodeAt(0));
+}
+
+function toBase64Url(bytes) {
+    return toBase64(bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 function corsHeaders(request, env) {
