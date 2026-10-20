@@ -167,11 +167,8 @@ export default {
             };
         },
         confirmDetails(submission) {
+            // The verifier can be added later; the level only shows once it has one
             const { name, verifier } = this.detail;
-            if (!verifier) {
-                this.error = 'Enter the verifier.';
-                return;
-            }
             this.decide(submission, 'accepted', { name, verifier });
             this.detail = null;
         },

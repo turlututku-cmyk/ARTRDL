@@ -191,14 +191,15 @@ async function publicRecords(env, headers) {
             (records[submission.level] ??= []).push(record);
             continue;
         }
-        // The first accepted submission for a level sets its name, verifier and position
+        // Only new levels with a verifier are shown. The first accepted submission sets the name, verifier and tier.
+        if (!submission.verifier) continue;
         const key = String(submission.levelId);
         const group = (newLevels[key] ??= {
             id: submission.levelId,
             name: submission.levelName,
             creator: submission.creator,
             verifier: submission.verifier,
-            tier: submission.tier,
+            tier: submission.tier ?? null,
             verification: submission.link,
             records: [],
         });
@@ -249,18 +250,21 @@ async function updateSubmission(id, request, env, headers) {
         if (name.length < 1 || name.length > 60) {
             return json({ error: 'Enter the level name (1 to 60 characters).' }, 400, headers);
         }
+        // A verifier is needed before the level is shown. Without one it stays accepted but unpublished.
         const verifier = typeof body.verifier === 'string' ? body.verifier.trim() : '';
-        if (verifier.length < 1 || verifier.length > 32) {
-            return json({ error: 'Enter the verifier name (1 to 32 characters).' }, 400, headers);
-        }
-        // The list position follows the level's GDDL tier, so look the tier up now
-        try {
-            submission.tier = await gddlTier(submission.levelId);
-        } catch {
-            return json({ error: 'Could not get this level\'s tier from GDDL right now. Try again in a few minutes.' }, 502, headers);
+        if (verifier.length > 32) {
+            return json({ error: 'Verifier name must be 32 characters or fewer.' }, 400, headers);
         }
         submission.levelName = name;
-        submission.verifier = verifier;
+        if (verifier) {
+            // The list position follows the level's GDDL tier, so look the tier up now
+            try {
+                submission.tier = await gddlTier(submission.levelId);
+            } catch {
+                return json({ error: 'Could not get this level\'s tier from GDDL right now. Try again in a few minutes.' }, 502, headers);
+            }
+            submission.verifier = verifier;
+        }
     }
 
     submission.status = body.status;
