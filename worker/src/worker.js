@@ -200,7 +200,7 @@ async function publicRecords(env, headers) {
             creator: submission.creator,
             verifier: submission.verifier,
             tier: submission.tier ?? null,
-            aredl: submission.aredl ?? null,
+            aredl: submission.aredl,
             verification: submission.link,
             records: [],
         });
