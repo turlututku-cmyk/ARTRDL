@@ -47,6 +47,7 @@ function addNewLevels(entries, newLevels = [], tiers = {}) {
                 percentToQualify: '100',
                 device: 'pc',
                 tier,
+                aredl: newLevel.aredl ?? null,
                 path,
                 records: mergeRecords(newLevel.records),
             },

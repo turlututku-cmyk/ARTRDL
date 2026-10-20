@@ -260,8 +260,10 @@ export default {
         },
         gddlAredl(level) {
             const entry = this.gddl[level.path];
-            if (!entry) return '—';
-            return entry.aredl ? `#${entry.aredl}` : 'Not on AREDL';
+            const aredl = entry?.aredl ?? level.aredl;
+            if (aredl) return `#${aredl}`;
+            // New levels always carry an aredl field (null when not on AREDL), list levels only when synced
+            return (entry || ('aredl' in level)) ? 'Not on AREDL' : '—';
         },
     },
 };

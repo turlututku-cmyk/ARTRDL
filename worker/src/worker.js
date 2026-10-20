@@ -200,6 +200,7 @@ async function publicRecords(env, headers) {
             creator: submission.creator,
             verifier: submission.verifier,
             tier: submission.tier ?? null,
+            aredl: submission.aredl ?? null,
             verification: submission.link,
             records: [],
         });
@@ -208,18 +209,22 @@ async function publicRecords(env, headers) {
     return json({ records, newLevels: Object.values(newLevels) }, 200, headers);
 }
 
-// Rounded GDDL tier for a level (null if GDDL has no rating for it). Sent with a browser user agent, as GDDL expects one.
-async function gddlTier(levelId) {
+// Rounded GDDL tier and AREDL position for a level (each null if GDDL has none).
+// Sent with a browser user agent, as GDDL expects one.
+async function gddlInfo(levelId) {
     const response = await fetch(`https://gdladder.com/api/levels/${levelId}`, {
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
             Accept: 'application/json',
         },
     });
-    if (response.status === 404) return null;
+    if (response.status === 404) return { tier: null, aredl: null };
     if (!response.ok) throw new Error(`GDDL answered ${response.status}`);
     const data = await response.json();
-    return data.Rating == null ? null : Math.round(data.Rating);
+    return {
+        tier: data.Rating == null ? null : Math.round(data.Rating),
+        aredl: data.AREDLPosition ?? null,
+    };
 }
 
 async function listSubmissions(env, headers) {
@@ -259,7 +264,9 @@ async function updateSubmission(id, request, env, headers) {
         if (verifier) {
             // The list position follows the level's GDDL tier, so look the tier up now
             try {
-                submission.tier = await gddlTier(submission.levelId);
+                const gddl = await gddlInfo(submission.levelId);
+                submission.tier = gddl.tier;
+                submission.aredl = gddl.aredl;
             } catch {
                 return json({ error: 'Could not get this level\'s tier from GDDL right now. Try again in a few minutes.' }, 502, headers);
             }
