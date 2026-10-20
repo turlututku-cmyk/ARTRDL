@@ -34,8 +34,12 @@ npx wrangler secret put ADMIN_TOKEN
 npx wrangler deploy
 ```
 
-6. Copy the address it prints (for example `https://artrdl-submissions.yourname.workers.dev`)
-   into `SUBMISSION_API` in `js/config.js`, then redeploy the site.
+6. Copy the address it prints (for example `https://artrdl.yourname.workers.dev`) into
+   `SUBMISSION_API` in `js/config.js`, then redeploy the site. The Worker is currently
+   `https://artrdl.cdukingproj.workers.dev`, which is already set there.
+
+If the Worker is connected to this GitHub repo in the Cloudflare dashboard, set its build
+**Root directory** to `worker`, so the build reads `worker/wrangler.toml`.
 
 After a level is accepted on `#/review`, copy its record and paste it into that level's
 `records` list in `data/<level>.json`.

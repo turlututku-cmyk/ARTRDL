@@ -15,4 +15,4 @@ export const EXTENDED_LIST_END = 75;
  * Address of the deployed submission Worker (see worker/wrangler.toml).
  * Submit Record sends to this address. Change it to your own Worker's address.
  */
-export const SUBMISSION_API = 'https://artrdl-submissions.YOUR-SUBDOMAIN.workers.dev';
+export const SUBMISSION_API = 'https://artrdl.cdukingproj.workers.dev';

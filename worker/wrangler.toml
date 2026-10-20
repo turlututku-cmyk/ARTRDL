@@ -1,4 +1,4 @@
-name = "artrdl-submissions"
+name = "artrdl"
 main = "src/worker.js"
 compatibility_date = "2025-09-01"
 
