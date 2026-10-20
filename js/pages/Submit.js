@@ -1,10 +1,12 @@
 import { fetchList } from "../content.js";
 import { SUBMISSION_API } from "../config.js";
+import { store } from "../main.js";
 
 export default {
     data: () => ({
+        store,
         levels: [],
-        form: { player: '', level: '', link: '', percent: 100, hz: '', device: 'pc', website: '' },
+        form: { player: store.username, level: '', link: '', percent: 100, hz: '', device: 'pc', website: '' },
         sending: false,
         sent: false,
         error: '',
@@ -14,10 +16,11 @@ export default {
             <div class="submit-card">
                 <h1>Submit a record</h1>
                 <p class="type-label-md">Only the list owner sees submissions. Accepted records are added to the list by hand.</p>
-                <form v-if="!sent" @submit.prevent="submit">
+                <p v-if="!store.username && !sent" class="type-label-lg">Log in with a username to submit records. <router-link to="/login">Log in</router-link></p>
+                <form v-if="!sent && store.username" @submit.prevent="submit">
                     <label class="field">
                         <span class="type-label-lg">Player name</span>
-                        <input v-model.trim="form.player" maxlength="32" required>
+                        <input v-model.trim="form.player" maxlength="32" readonly>
                     </label>
                     <label class="field">
                         <span class="type-label-lg">Level</span>
@@ -50,7 +53,7 @@ export default {
                     <p class="submit-error" v-if="error">{{ error }}</p>
                     <button class="submit-button type-label-lg" type="submit" :disabled="sending">{{ sending ? 'Sending...' : 'Submit' }}</button>
                 </form>
-                <p v-else class="submit-thanks type-label-lg">Thanks! Your submission was received.</p>
+                <p v-else-if="sent" class="submit-thanks type-label-lg">Thanks! Your submission was received.</p>
             </div>
         </main>
     `,

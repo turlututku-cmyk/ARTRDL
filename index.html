@@ -58,6 +58,9 @@
                     <span class="type-label-lg">Packs</span>
                 </router-link>
                 <div class="nav__actions">
+                    <router-link class="nav__tab" to="/login">
+                        <span class="type-label-lg">{{ store.username || 'Log in' }}</span>
+                    </router-link>
                     <button
                         class="nav__icon"
                         @click.prevent="store.toggleDark()"
