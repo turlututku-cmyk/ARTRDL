@@ -301,8 +301,8 @@ Leave the file as `[ ]` if you do not want packs.
 ## Step 11: Colors
 
 Open `css/main.css`. The first two blocks (`:root` and `main.dark`) hold the theme
-colors. `--color-primary` is the blue top bar and highlight color. Change the hex
-codes (e.g. `#67bed9`) to restyle the site.
+colors. `--color-primary` is the red highlight color. Change the hex codes
+(e.g. `#e11d48`) to restyle the site.
 
 ---
 
