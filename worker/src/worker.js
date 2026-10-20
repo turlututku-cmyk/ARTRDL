@@ -198,13 +198,27 @@ async function publicRecords(env, headers) {
             name: submission.levelName,
             creator: submission.creator,
             verifier: submission.verifier,
-            position: submission.position,
+            tier: submission.tier,
             verification: submission.link,
             records: [],
         });
         group.records.push(record);
     }
     return json({ records, newLevels: Object.values(newLevels) }, 200, headers);
+}
+
+// Rounded GDDL tier for a level (null if GDDL has no rating for it). Sent with a browser user agent, as GDDL expects one.
+async function gddlTier(levelId) {
+    const response = await fetch(`https://gdladder.com/api/levels/${levelId}`, {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+            Accept: 'application/json',
+        },
+    });
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`GDDL answered ${response.status}`);
+    const data = await response.json();
+    return data.Rating == null ? null : Math.round(data.Rating);
 }
 
 async function listSubmissions(env, headers) {
@@ -229,7 +243,7 @@ async function updateSubmission(id, request, env, headers) {
         return json({ error: 'Status must be accepted, rejected or pending.' }, 400, headers);
     }
 
-    // A new level goes on the list when it's accepted, so the owner says who verified it and where it goes
+    // A new level goes on the list when it's accepted; the owner says who verified it, and its tier sets its place
     if (body.status === 'accepted' && submission.isNew) {
         const name = typeof body.name === 'string' ? body.name.trim() : submission.levelName;
         if (name.length < 1 || name.length > 60) {
@@ -239,13 +253,14 @@ async function updateSubmission(id, request, env, headers) {
         if (verifier.length < 1 || verifier.length > 32) {
             return json({ error: 'Enter the verifier name (1 to 32 characters).' }, 400, headers);
         }
-        const position = Number(body.position);
-        if (!Number.isInteger(position) || position < 1) {
-            return json({ error: 'Enter the position on the list (a whole number, 1 or more).' }, 400, headers);
+        // The list position follows the level's GDDL tier, so look the tier up now
+        try {
+            submission.tier = await gddlTier(submission.levelId);
+        } catch {
+            return json({ error: 'Could not get this level\'s tier from GDDL right now. Try again in a few minutes.' }, 502, headers);
         }
         submission.levelName = name;
         submission.verifier = verifier;
-        submission.position = position;
     }
 
     submission.status = body.status;

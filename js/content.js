@@ -21,14 +21,21 @@ async function fetchAcceptedRecords() {
 }
 
 /**
- * Accepted new levels go into the list at the position the owner chose.
- * A level file with the same ID takes precedence, so no level is shown twice.
+ * Accepted new levels go into the list by GDDL tier: above the first level with a lower tier.
+ * A level with no GDDL tier goes to the bottom. A level file with the same ID takes precedence,
+ * so no level is shown twice.
  */
-function addNewLevels(entries, newLevels = []) {
-    const byPosition = [...newLevels].sort((a, b) => a.position - b.position);
-    for (const newLevel of byPosition) {
+function addNewLevels(entries, newLevels = [], tiers = {}) {
+    for (const newLevel of newLevels) {
         if (entries.some(([level]) => level && level.id === newLevel.id)) continue;
-        const index = Math.min(Math.max(newLevel.position - 1, 0), entries.length);
+        const path = `new-${newLevel.id}`;
+        const tier = newLevel.tier;
+        let index = entries.length;
+        if (tier != null) {
+            const found = entries.findIndex(([level]) => level && tiers[level.path]?.tier != null && tiers[level.path].tier < tier);
+            if (found >= 0) index = found;
+        }
+        tiers[path] = { tier };
         entries.splice(index, 0, [
             {
                 id: newLevel.id,
@@ -39,11 +46,23 @@ function addNewLevels(entries, newLevels = []) {
                 verification: newLevel.verification,
                 percentToQualify: '100',
                 device: 'pc',
-                path: `new-${newLevel.id}`,
+                path,
                 records: mergeRecords(newLevel.records),
             },
             null,
         ]);
+    }
+}
+
+/**
+ * GDDL tier per list level, written by scripts/sync-gddl.ps1
+ */
+async function fetchGddlTiers() {
+    try {
+        const result = await fetch(`${dir}/_gddl.json`);
+        return await result.json();
+    } catch {
+        return {};
     }
 }
 
@@ -85,7 +104,7 @@ export async function fetchList(file = '_list') {
                 }
             }),
         );
-        addNewLevels(entries, accepted.newLevels);
+        addNewLevels(entries, accepted.newLevels, await fetchGddlTiers());
         return entries;
     } catch {
         console.error(`Failed to load list.`);

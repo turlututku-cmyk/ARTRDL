@@ -63,7 +63,7 @@ export default {
                         </div>
 
                         <div v-if="detail && detail.id === s.id" class="review-detail">
-                            <p class="type-label-md">{{ s.isNew ? 'Details for the new level. It goes on the list with these.' : '' }}</p>
+                            <p class="type-label-md">{{ s.isNew ? 'Details for the new level. Its place on the list follows its GDDL tier.' : '' }}</p>
                             <label class="field">
                                 <span class="type-label-lg">Level name</span>
                                 <input v-model.trim="detail.name" maxlength="60">
@@ -72,10 +72,6 @@ export default {
                                 <span class="type-label-lg">Verifier</span>
                                 <input v-model.trim="detail.verifier" maxlength="32">
                             </label>
-                            <label class="field">
-                                <span class="type-label-lg">Position on the list</span>
-                                <input v-model.number="detail.position" type="number" min="1">
-                            </label>
                             <div class="review-actions">
                                 <button class="submit-button type-label-lg" @click="confirmDetails(s)">{{ s.status === 'pending' ? 'Accept' : 'Save' }}</button>
                                 <button class="submit-button type-label-lg" @click="detail = null">Cancel</button>
@@ -83,8 +79,8 @@ export default {
                         </div>
 
                         <div v-if="s.status === 'accepted'" class="review-accepted">
-                            <p class="type-label-md" v-if="s.isNew && s.position">Live on the list as #{{ s.position }}, verified by {{ s.verifier }}.</p>
-                            <p class="type-label-md" v-else-if="s.isNew">Not on the list yet. Set its verifier and position.</p>
+                            <p class="type-label-md" v-if="s.isNew && s.verifier">Live on the list by its tier ({{ s.tier != null ? 'tier ' + s.tier : 'unrated, so at the bottom' }}), verified by {{ s.verifier }}.</p>
+                            <p class="type-label-md" v-else-if="s.isNew">Not on the list yet. Set its verifier.</p>
                             <p class="type-label-md" v-else>Live on the list now.</p>
                             <button v-if="s.isNew" class="submit-button type-label-lg" @click="editDetails(s)">Edit details</button>
                         </div>
@@ -158,7 +154,7 @@ export default {
         // Accepting a record for a level already on the list is one click; a new level needs its details first
         accept(submission) {
             if (submission.isNew) {
-                this.detail = { id: submission.id, name: submission.levelName, verifier: '', position: '' };
+                this.detail = { id: submission.id, name: submission.levelName, verifier: '' };
                 return;
             }
             this.decide(submission, 'accepted');
@@ -168,16 +164,15 @@ export default {
                 id: submission.id,
                 name: submission.levelName,
                 verifier: submission.verifier || '',
-                position: submission.position || '',
             };
         },
         confirmDetails(submission) {
-            const { name, verifier, position } = this.detail;
-            if (!verifier || !position) {
-                this.error = 'Enter the verifier and the position on the list.';
+            const { name, verifier } = this.detail;
+            if (!verifier) {
+                this.error = 'Enter the verifier.';
                 return;
             }
-            this.decide(submission, 'accepted', { name, verifier, position });
+            this.decide(submission, 'accepted', { name, verifier });
             this.detail = null;
         },
         async decide(submission, status, extra = {}) {
