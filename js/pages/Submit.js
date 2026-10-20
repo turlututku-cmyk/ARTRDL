@@ -35,8 +35,8 @@ export default {
                         <input v-model.number="form.percent" type="number" min="1" max="100" required>
                     </label>
                     <label class="field">
-                        <span class="type-label-lg">Refresh rate (Hz, optional)</span>
-                        <input v-model.number="form.hz" type="number" min="1" max="1000">
+                        <span class="type-label-lg">Refresh rate (Hz)</span>
+                        <input v-model.number="form.hz" type="number" min="1" max="1000" required>
                     </label>
                     <label class="field">
                         <span class="type-label-lg">Device</span>

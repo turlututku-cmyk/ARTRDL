@@ -112,12 +112,9 @@ async function validate(body, env) {
         return { error: 'Percent must be a whole number from 1 to 100.' };
     }
 
-    let hz = null;
-    if (body.hz !== undefined && body.hz !== null && body.hz !== '') {
-        hz = Number(body.hz);
-        if (!Number.isInteger(hz) || hz < 1 || hz > 1000) {
-            return { error: 'Refresh rate must be a whole number from 1 to 1000.' };
-        }
+    const hz = Number(body.hz);
+    if (!Number.isInteger(hz) || hz < 1 || hz > 1000) {
+        return { error: 'Refresh rate must be a whole number from 1 to 1000.' };
     }
 
     if (!DEVICES.includes(body.device)) {
