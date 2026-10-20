@@ -29,9 +29,9 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    /* Leave room for descenders like the "g" in "Log in" */
-    padding-bottom: 0.3em;
-    margin-bottom: -0.3em;
+    /* Leave room above and below for accents and descenders like the "g" in "Log in" */
+    padding: 0.2em 0 0.3em;
+    margin: -0.2em 0 -0.3em;
 }
 .page-submit .submit-card form {
     display: flex;

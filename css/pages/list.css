@@ -274,9 +274,9 @@ main.dark .page-list .epic {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    /* The gradient only paints inside the box, so leave room for descenders like the "g" */
-    padding-bottom: 0.3em;
-    margin-bottom: -0.3em;
+    /* The gradient only paints inside the box, so leave room above and below for accents and descenders */
+    padding: 0.2em 0 0.3em;
+    margin: -0.2em 0 -0.3em;
 }
 .page-list .level-container .level .stats {
     background: linear-gradient(135deg, rgba(225, 29, 72, 0.12), rgba(255, 77, 141, 0.2));
