@@ -37,6 +37,10 @@ export default {
         try {
             const url = new URL(request.url);
 
+            if (request.method === 'GET' && url.pathname === '/api/public/records') {
+                return await publicRecords(env, headers);
+            }
+
             if (url.pathname.startsWith('/api/users/')) {
                 return await handleUsers(request, env, url.pathname, headers);
             }
@@ -165,6 +169,24 @@ async function validate(body, env, player) {
             ...(newLevel ? { isNew: true, levelId: newLevel.id, creator: newLevel.creator } : {}),
         },
     };
+}
+
+// Accepted records for levels already on the list, grouped by level path. Public, because the list shows them.
+async function publicRecords(env, headers) {
+    const keys = await env.SUBMISSIONS.list({ prefix: 'sub:' });
+    const items = (await Promise.all(keys.keys.map((key) => env.SUBMISSIONS.get(key.name, 'json')))).filter(Boolean);
+    const records = {};
+    for (const submission of items) {
+        if (submission.status !== 'accepted' || submission.isNew) continue;
+        (records[submission.level] ??= []).push({
+            user: submission.player,
+            link: submission.link,
+            percent: submission.percent,
+            hz: submission.hz,
+            device: submission.device,
+        });
+    }
+    return json({ records }, 200, headers);
 }
 
 async function listSubmissions(env, headers) {

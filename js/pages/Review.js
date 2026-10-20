@@ -60,10 +60,12 @@ export default {
                             <button class="submit-button type-label-lg" @click="decide(s, 'rejected')">Reject</button>
                         </div>
                         <div v-if="s.status === 'accepted'" class="review-accepted">
-                            <p class="type-label-md" v-if="!s.isNew">Add this to the <code>records</code> list in <code>data/{{ s.level }}.json</code>:</p>
+                            <p class="type-label-md" v-if="!s.isNew">Live on the list now.</p>
                             <p class="type-label-md" v-else>Create a level file for it first (name, ID {{ s.levelId }}, creator {{ s.creator }}, and the video), add it to <code>data/_list.json</code>, then add this record to its <code>records</code>:</p>
-                            <pre class="record-snippet">{{ recordSnippet(s) }}</pre>
-                            <button class="submit-button type-label-lg" @click="copy(s)">{{ copiedId === s.id ? 'Copied' : 'Copy record' }}</button>
+                            <template v-if="s.isNew">
+                                <pre class="record-snippet">{{ recordSnippet(s) }}</pre>
+                                <button class="submit-button type-label-lg" @click="copy(s)">{{ copiedId === s.id ? 'Copied' : 'Copy record' }}</button>
+                            </template>
                         </div>
                     </article>
                     <p class="type-label-md" v-if="!loading && submissions.length === 0">No submissions yet.</p>

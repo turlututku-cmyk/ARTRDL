@@ -1,12 +1,41 @@
 import { round, score } from './score.js';
+import { SUBMISSION_API } from './config.js';
 
 /**
  * Path to directory containing `_list.json` and all levels
  */
 const dir = '/data';
 
+/**
+ * Records the owner has accepted (served by the submission Worker), keyed by level path.
+ * If the Worker can't be reached, the list still loads from the level files alone.
+ */
+async function fetchAcceptedRecords() {
+    try {
+        const response = await fetch(`${SUBMISSION_API}/api/public/records`);
+        return (await response.json()).records || {};
+    } catch {
+        return {};
+    }
+}
+
+/**
+ * Level file records plus accepted records, newest-first by percent, each video counted once
+ */
+function mergeRecords(fileRecords, acceptedRecords = []) {
+    const seen = new Set();
+    return [...fileRecords, ...acceptedRecords]
+        .filter((record) => {
+            if (seen.has(record.link)) return false;
+            seen.add(record.link);
+            return true;
+        })
+        .sort((a, b) => b.percent - a.percent);
+}
+
 export async function fetchList(file = '_list') {
     const listResult = await fetch(`${dir}/${file}.json`);
+    const accepted = await fetchAcceptedRecords();
     try {
         const list = await listResult.json();
         return await Promise.all(
@@ -18,9 +47,7 @@ export async function fetchList(file = '_list') {
                         {
                             ...level,
                             path,
-                            records: level.records.sort(
-                                (a, b) => b.percent - a.percent,
-                            ),
+                            records: mergeRecords(level.records, accepted[path]),
                         },
                         null,
                     ];
