@@ -9,8 +9,9 @@ export default {
         submissions: [],
         loading: false,
         error: '',
-        copiedId: '',
         rememberMe: true,
+        // Details being typed for a new level: { id, name, verifier, position }
+        detail: null,
     }),
     async mounted() {
         // Sign straight in if the owner chose to be remembered on this device
@@ -55,17 +56,37 @@ export default {
                         <p class="type-label-md" v-if="s.isNew">New level, not on the list yet: ID {{ s.levelId }}, by {{ s.creator }}.</p>
                         <p class="type-label-md"><a :href="s.link" target="_blank">{{ s.link }}</a></p>
                         <p class="type-label-md">{{ s.device }} · {{ s.hz ? s.hz + 'Hz' : 'no refresh rate given' }} · {{ new Date(s.submittedAt).toLocaleString() }} · {{ s.status }}</p>
+
                         <div v-if="s.status === 'pending'" class="review-actions">
-                            <button class="submit-button type-label-lg" @click="decide(s, 'accepted')">Accept</button>
+                            <button class="submit-button type-label-lg" @click="accept(s)">Accept</button>
                             <button class="submit-button type-label-lg" @click="decide(s, 'rejected')">Reject</button>
                         </div>
+
+                        <div v-if="detail && detail.id === s.id" class="review-detail">
+                            <p class="type-label-md">{{ s.isNew ? 'Details for the new level. It goes on the list with these.' : '' }}</p>
+                            <label class="field">
+                                <span class="type-label-lg">Level name</span>
+                                <input v-model.trim="detail.name" maxlength="60">
+                            </label>
+                            <label class="field">
+                                <span class="type-label-lg">Verifier</span>
+                                <input v-model.trim="detail.verifier" maxlength="32">
+                            </label>
+                            <label class="field">
+                                <span class="type-label-lg">Position on the list</span>
+                                <input v-model.number="detail.position" type="number" min="1">
+                            </label>
+                            <div class="review-actions">
+                                <button class="submit-button type-label-lg" @click="confirmDetails(s)">{{ s.status === 'pending' ? 'Accept' : 'Save' }}</button>
+                                <button class="submit-button type-label-lg" @click="detail = null">Cancel</button>
+                            </div>
+                        </div>
+
                         <div v-if="s.status === 'accepted'" class="review-accepted">
-                            <p class="type-label-md" v-if="!s.isNew">Live on the list now.</p>
-                            <p class="type-label-md" v-else>Create a level file for it first (name, ID {{ s.levelId }}, creator {{ s.creator }}, and the video), add it to <code>data/_list.json</code>, then add this record to its <code>records</code>:</p>
-                            <template v-if="s.isNew">
-                                <pre class="record-snippet">{{ recordSnippet(s) }}</pre>
-                                <button class="submit-button type-label-lg" @click="copy(s)">{{ copiedId === s.id ? 'Copied' : 'Copy record' }}</button>
-                            </template>
+                            <p class="type-label-md" v-if="s.isNew && s.position">Live on the list as #{{ s.position }}, verified by {{ s.verifier }}.</p>
+                            <p class="type-label-md" v-else-if="s.isNew">Not on the list yet. Set its verifier and position.</p>
+                            <p class="type-label-md" v-else>Live on the list now.</p>
+                            <button v-if="s.isNew" class="submit-button type-label-lg" @click="editDetails(s)">Edit details</button>
                         </div>
                     </article>
                     <p class="type-label-md" v-if="!loading && submissions.length === 0">No submissions yet.</p>
@@ -100,6 +121,7 @@ export default {
             this.token = '';
             this.tokenInput = '';
             this.submissions = [];
+            this.detail = null;
             this.forget();
         },
         request(path, options = {}) {
@@ -133,35 +155,47 @@ export default {
                 this.loading = false;
             }
         },
-        async decide(submission, status) {
+        // Accepting a record for a level already on the list is one click; a new level needs its details first
+        accept(submission) {
+            if (submission.isNew) {
+                this.detail = { id: submission.id, name: submission.levelName, verifier: '', position: '' };
+                return;
+            }
+            this.decide(submission, 'accepted');
+        },
+        editDetails(submission) {
+            this.detail = {
+                id: submission.id,
+                name: submission.levelName,
+                verifier: submission.verifier || '',
+                position: submission.position || '',
+            };
+        },
+        confirmDetails(submission) {
+            const { name, verifier, position } = this.detail;
+            if (!verifier || !position) {
+                this.error = 'Enter the verifier and the position on the list.';
+                return;
+            }
+            this.decide(submission, 'accepted', { name, verifier, position });
+            this.detail = null;
+        },
+        async decide(submission, status, extra = {}) {
             this.error = '';
             try {
                 const response = await this.request(
                     `/api/admin/submissions/${encodeURIComponent(submission.id)}`,
-                    { method: 'POST', body: JSON.stringify({ status }) },
+                    { method: 'POST', body: JSON.stringify({ status, ...extra }) },
                 );
                 if (!response.ok) {
-                    this.error = 'Could not update that submission.';
+                    const data = await response.json().catch(() => ({}));
+                    this.error = data.error || 'Could not update that submission.';
                     return;
                 }
                 Object.assign(submission, await response.json());
             } catch {
                 this.error = 'Could not reach the submission server.';
             }
-        },
-        recordSnippet(s) {
-            const record = {
-                user: s.player,
-                link: s.link,
-                percent: s.percent,
-                ...(s.hz ? { hz: s.hz } : {}),
-                device: s.device,
-            };
-            return JSON.stringify(record, null, 4);
-        },
-        async copy(s) {
-            await navigator.clipboard.writeText(this.recordSnippet(s));
-            this.copiedId = s.id;
         },
     },
 };

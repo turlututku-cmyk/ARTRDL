@@ -13,9 +13,37 @@ const dir = '/data';
 async function fetchAcceptedRecords() {
     try {
         const response = await fetch(`${SUBMISSION_API}/api/public/records`);
-        return (await response.json()).records || {};
+        const data = await response.json();
+        return { records: data.records || {}, newLevels: data.newLevels || [] };
     } catch {
-        return {};
+        return { records: {}, newLevels: [] };
+    }
+}
+
+/**
+ * Accepted new levels go into the list at the position the owner chose.
+ * A level file with the same ID takes precedence, so no level is shown twice.
+ */
+function addNewLevels(entries, newLevels = []) {
+    const byPosition = [...newLevels].sort((a, b) => a.position - b.position);
+    for (const newLevel of byPosition) {
+        if (entries.some(([level]) => level && level.id === newLevel.id)) continue;
+        const index = Math.min(Math.max(newLevel.position - 1, 0), entries.length);
+        entries.splice(index, 0, [
+            {
+                id: newLevel.id,
+                name: newLevel.name,
+                author: newLevel.creator,
+                creators: [newLevel.creator],
+                verifier: newLevel.verifier,
+                verification: newLevel.verification,
+                percentToQualify: '100',
+                device: 'pc',
+                path: `new-${newLevel.id}`,
+                records: mergeRecords(newLevel.records),
+            },
+            null,
+        ]);
     }
 }
 
@@ -38,7 +66,7 @@ export async function fetchList(file = '_list') {
     const accepted = await fetchAcceptedRecords();
     try {
         const list = await listResult.json();
-        return await Promise.all(
+        const entries = await Promise.all(
             list.map(async (path, rank) => {
                 const levelResult = await fetch(`${dir}/${path}.json`);
                 try {
@@ -47,7 +75,7 @@ export async function fetchList(file = '_list') {
                         {
                             ...level,
                             path,
-                            records: mergeRecords(level.records, accepted[path]),
+                            records: mergeRecords(level.records, accepted.records[path]),
                         },
                         null,
                     ];
@@ -57,6 +85,8 @@ export async function fetchList(file = '_list') {
                 }
             }),
         );
+        addNewLevels(entries, accepted.newLevels);
+        return entries;
     } catch {
         console.error(`Failed to load list.`);
         return null;

@@ -171,22 +171,40 @@ async function validate(body, env, player) {
     };
 }
 
-// Accepted records for levels already on the list, grouped by level path. Public, because the list shows them.
+// Accepted records, grouped by level path, plus accepted new levels with their position.
+// Public, because the list shows them.
 async function publicRecords(env, headers) {
     const keys = await env.SUBMISSIONS.list({ prefix: 'sub:' });
     const items = (await Promise.all(keys.keys.map((key) => env.SUBMISSIONS.get(key.name, 'json')))).filter(Boolean);
     const records = {};
+    const newLevels = {};
     for (const submission of items) {
-        if (submission.status !== 'accepted' || submission.isNew) continue;
-        (records[submission.level] ??= []).push({
+        if (submission.status !== 'accepted') continue;
+        const record = {
             user: submission.player,
             link: submission.link,
             percent: submission.percent,
             hz: submission.hz,
             device: submission.device,
+        };
+        if (!submission.isNew) {
+            (records[submission.level] ??= []).push(record);
+            continue;
+        }
+        // The first accepted submission for a level sets its name, verifier and position
+        const key = String(submission.levelId);
+        const group = (newLevels[key] ??= {
+            id: submission.levelId,
+            name: submission.levelName,
+            creator: submission.creator,
+            verifier: submission.verifier,
+            position: submission.position,
+            verification: submission.link,
+            records: [],
         });
+        group.records.push(record);
     }
-    return json({ records }, 200, headers);
+    return json({ records, newLevels: Object.values(newLevels) }, 200, headers);
 }
 
 async function listSubmissions(env, headers) {
@@ -209,6 +227,25 @@ async function updateSubmission(id, request, env, headers) {
     }
     if (!['accepted', 'rejected', 'pending'].includes(body.status)) {
         return json({ error: 'Status must be accepted, rejected or pending.' }, 400, headers);
+    }
+
+    // A new level goes on the list when it's accepted, so the owner says who verified it and where it goes
+    if (body.status === 'accepted' && submission.isNew) {
+        const name = typeof body.name === 'string' ? body.name.trim() : submission.levelName;
+        if (name.length < 1 || name.length > 60) {
+            return json({ error: 'Enter the level name (1 to 60 characters).' }, 400, headers);
+        }
+        const verifier = typeof body.verifier === 'string' ? body.verifier.trim() : '';
+        if (verifier.length < 1 || verifier.length > 32) {
+            return json({ error: 'Enter the verifier name (1 to 32 characters).' }, 400, headers);
+        }
+        const position = Number(body.position);
+        if (!Number.isInteger(position) || position < 1) {
+            return json({ error: 'Enter the position on the list (a whole number, 1 or more).' }, 400, headers);
+        }
+        submission.levelName = name;
+        submission.verifier = verifier;
+        submission.position = position;
     }
 
     submission.status = body.status;

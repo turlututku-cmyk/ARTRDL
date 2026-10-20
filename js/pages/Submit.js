@@ -86,7 +86,7 @@ export default {
     async mounted() {
         const list = await fetchList();
         this.levels = (list || [])
-            .filter(([level]) => level)
+            .filter(([level]) => level && !level.path.startsWith('new-'))
             .map(([level]) => ({ path: level.path, name: level.name }));
     },
     methods: {
