@@ -1,0 +1,9 @@
+[
+    {
+        "name": "Example Pack",
+        "color": "#00c8ff",
+        "levels": [
+            "example-level"
+        ]
+    }
+]

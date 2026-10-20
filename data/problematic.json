@@ -1,0 +1,20 @@
+{
+    "id": 7116121,
+    "name": "Problematic",
+    "author": "Dhafin",
+    "creators": ["Dhafin"],
+    "verifier": "RetccatGD",
+    "verification": "https://www.youtube.com/watch?v=dDWnHvToO9Q",
+    "percentToQualify": "100",
+    "device": "pc",
+    "password": "006701",
+    "records": [
+        {
+            "user": "CdukingGD",
+            "link": "https://www.youtube.com/watch?v=oqhmeG4AXEQ",
+            "percent": 100,
+            "hz": 344,
+            "device": "pc"
+        }
+    ]
+}

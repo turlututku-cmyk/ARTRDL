@@ -1,0 +1,7 @@
+# Local tooling
+.claude/
+
+# Cloudflare Worker build output and dependencies
+worker/node_modules/
+worker/.wrangler/
+.wrangler/

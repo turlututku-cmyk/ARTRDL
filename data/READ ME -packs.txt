@@ -1,0 +1,9 @@
+[
+    {
+        "name": "Example Pack", --pack name
+        "color": "#00c8ff", --color hex code
+        "levels": [ --levels in it
+            "example-level"
+        ]
+    }
+]

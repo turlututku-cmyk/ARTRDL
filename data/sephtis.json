@@ -1,0 +1,20 @@
+{
+    "id": 75857309,
+    "name": "Sephtis",
+    "author": "deThe",
+    "creators": ["deThe"],
+    "verifier": "Samixton",
+    "verification": "https://www.youtube.com/watch?v=cuc_BenYHTw",
+    "percentToQualify": "100",
+    "device": "pc",
+    "difficulty": "extreme",
+    "records": [
+        {
+            "user": "poncik",
+            "link": "https://www.youtube.com/watch?v=cuc_BenYHTw",
+            "percent": 100,
+            "hz": 240,
+            "device": "pc"
+        }
+    ]
+}

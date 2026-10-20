@@ -1,0 +1,110 @@
+{
+    "bloodbath":  {
+                      "tier":  24,
+                      "aredl":  849
+                  },
+    "allegiance":  {
+                       "tier":  21,
+                       "aredl":  1375
+                   },
+    "cataclysm":  {
+                      "tier":  21,
+                      "aredl":  1502
+                  },
+    "azurite":  {
+                    "tier":  21,
+                    "aredl":  1537
+                },
+    "sephtis":  {
+                    "tier":  20,
+                    "aredl":  1554
+                },
+    "rauchkammer":  {
+                        "tier":  20,
+                        "aredl":  1602
+                    },
+    "sweater-weather":  {
+                            "tier":  20,
+                            "aredl":  1595
+                        },
+    "acu":  {
+                "tier":  20,
+                "aredl":  1597
+            },
+    "leyak":  {
+                  "tier":  18,
+                  "aredl":  null
+              },
+    "denouement":  {
+                       "tier":  17,
+                       "aredl":  null
+                   },
+    "crazy":  {
+                  "tier":  13,
+                  "aredl":  null
+              },
+    "toe-3":  {
+                  "tier":  8,
+                  "aredl":  null
+              },
+    "nine-circles":  {
+                         "tier":  11,
+                         "aredl":  null
+                     },
+    "space-invaders":  {
+                           "tier":  10,
+                           "aredl":  null
+                       },
+    "deadlocked":  {
+                       "tier":  5,
+                       "aredl":  null
+                   },
+    "problematic":  {
+                        "tier":  3,
+                        "aredl":  null
+                    },
+    "resonate":  {
+                     "tier":  3,
+                     "aredl":  null
+                 },
+    "theory-of-everything-2":  {
+                                   "tier":  3,
+                                   "aredl":  null
+                               },
+    "brave-new-world":  {
+                            "tier":  3,
+                            "aredl":  null
+                        },
+    "nothing":  {
+                    "tier":  3,
+                    "aredl":  null
+                },
+    "ispy-with-my-little-eye":  {
+                                    "tier":  2,
+                                    "aredl":  null
+                                },
+    "raging-rapids":  {
+                          "tier":  2,
+                          "aredl":  null
+                      },
+    "phjork":  {
+                   "tier":  1,
+                   "aredl":  null
+               },
+    "demon-jumper":  {
+                         "tier":  1,
+                         "aredl":  null
+                     },
+    "platinum-adventure":  {
+                               "tier":  1,
+                               "aredl":  null
+                           },
+    "the-lightning-road":  {
+                               "tier":  1,
+                               "aredl":  null
+                           },
+    "the-nightmare":  {
+                          "tier":  1,
+                          "aredl":  null
+                      }
+}

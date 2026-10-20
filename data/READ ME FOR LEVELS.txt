@@ -1,0 +1,27 @@
+{
+    "id": 12345678, --for level id
+    "name": "Example Level", --for level name
+    "author": "LevelCreator", --for who published the level
+    "creators": ["LevelCreator"], --for who made the level
+    "verifier": "TheVerifier", --for WHO verified it
+    "verification": "https://www.youtube.com/watch?v=VIDEO_ID_HERE", --video proof (must be youtube)
+    "percentToQualify": "100", --required percentage
+    "device": "pc", --used device (pc/mobile/console)
+    "difficulty": "extreme-low", --difficulties are in "C:\Users\user\Downloads\list-template\assets\difficulty"
+    "records": [ --records here
+        {
+            "user": "PlayerOne",
+            "link": "https://www.youtube.com/watch?v=VIDEO_ID_HERE",
+            "percent": 100,
+            "hz": 60, --TPS NOT FPS
+            "device": "console"
+        },
+        {
+            "user": "PlayerTwo",
+            "link": "https://www.youtube.com/watch?v=VIDEO_ID_HERE",
+            "percent": 64,
+            "hz": 144,
+            "device": "mobile"
+        }
+    ]
+}

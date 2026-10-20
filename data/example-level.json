@@ -1,0 +1,27 @@
+{
+    "id": 12345678,
+    "name": "Example Level",
+    "author": "LevelCreator",
+    "creators": ["LevelCreator"],
+    "verifier": "TheVerifier",
+    "verification": "https://www.youtube.com/watch?v=VIDEO_ID_HERE",
+    "percentToQualify": "100",
+    "device": "pc",
+    "difficulty": "extreme-low",
+    "records": [
+        {
+            "user": "PlayerOne",
+            "link": "https://www.youtube.com/watch?v=VIDEO_ID_HERE",
+            "percent": 100,
+            "hz": 60,
+            "device": "pc"
+        },
+        {
+            "user": "PlayerTwo",
+            "link": "https://www.youtube.com/watch?v=VIDEO_ID_HERE",
+            "percent": 64,
+            "hz": 144,
+            "device": "mobile"
+        }
+    ]
+}

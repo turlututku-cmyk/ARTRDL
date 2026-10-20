@@ -1,0 +1,16 @@
+name = "artrdl-submissions"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+
+# Sites allowed to call the API (comma-separated). Add your live site address,
+# e.g. "https://your-list.pages.dev,http://localhost:5174"
+[vars]
+ALLOWED_ORIGINS = "http://localhost:5174"
+# Address of the list itself (used to check submitted levels against _list.json)
+SITE_URL = "http://localhost:5174"
+
+# Create with: npx wrangler kv namespace create SUBMISSIONS
+# then paste the id it prints below.
+[[kv_namespaces]]
+binding = "SUBMISSIONS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"

@@ -1,0 +1,20 @@
+{
+    "id": 10565740,
+    "name": "Bloodbath",
+    "author": "Riot",
+    "creators": ["Riot"],
+    "verifier": "Samixton",
+    "verification": "https://www.youtube.com/watch?v=kAypELvw53g",
+    "percentToQualify": "100",
+    "device": "pc",
+    "difficulty": "extreme",
+    "records": [
+        {
+            "user": "Samixton",
+            "link": "https://www.youtube.com/watch?v=kAypELvw53g",
+            "percent": 100,
+            "hz": 240,
+            "device": "pc"
+        }
+    ]
+}

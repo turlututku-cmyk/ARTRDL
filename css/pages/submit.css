@@ -1,0 +1,117 @@
+/* Submit Record and owner review pages, in the list's red-pink theme */
+.page-submit {
+    --list-red: #e11d48;
+    --list-pink: #ff4d8d;
+    --list-gradient: linear-gradient(135deg, var(--list-red) 0%, var(--list-pink) 100%);
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-content: start;
+    background: linear-gradient(170deg, #ffffff 0%, #fff1f6 55%, #ffe3ee 100%);
+}
+.page-submit.dark {
+    background: linear-gradient(170deg, #1c1b1f 0%, #2a1120 60%, #3a1230 100%);
+}
+.page-submit .submit-card {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 40rem;
+    margin: 2rem 1rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    border-radius: 1rem;
+    background: var(--color-background);
+    box-shadow: 0 8px 30px rgba(225, 29, 72, 0.12);
+}
+.page-submit .submit-card h1 {
+    background: var(--list-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-bottom: 0.1em;
+}
+.page-submit .submit-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.page-submit .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.page-submit .field input,
+.page-submit .field select {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid rgba(127, 127, 127, 0.25);
+    border-radius: 0.75rem;
+    background: var(--color-background);
+    color: var(--color-on-background);
+    font: inherit;
+}
+.page-submit .field input:focus,
+.page-submit .field select:focus {
+    outline: none;
+    border-color: var(--list-pink);
+    box-shadow: 0 0 0 3px rgba(255, 77, 141, 0.35);
+}
+.page-submit .honeypot {
+    display: none;
+}
+.page-submit .submit-button {
+    align-self: flex-start;
+    padding: 0.8rem 1.25rem;
+    border: none;
+    border-radius: 0.75rem;
+    background: var(--list-gradient);
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3);
+}
+.page-submit .submit-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+.page-submit .submit-error {
+    color: var(--list-red);
+}
+.page-submit .review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.page-submit .review-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.page-submit .submission {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    background: var(--color-background-hover);
+    border-left: 4px solid var(--list-pink);
+}
+.page-submit .submission.accepted {
+    border-left-color: #22c55e;
+}
+.page-submit .submission.rejected {
+    opacity: 0.5;
+}
+.page-submit .review-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+.page-submit .record-snippet {
+    overflow-x: auto;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--color-background);
+    font-size: 0.85rem;
+}
