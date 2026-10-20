@@ -25,6 +25,7 @@ const MAX_BODY_CHARS = 4096;
 const YOUTUBE_LINK = /^https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{6,}/;
 const LEVEL_PATH = /^[a-z0-9-]{1,60}$/;
 const DEVICES = ['pc', 'mobile', 'console'];
+const NEW_LEVEL = '__new__';
 
 export default {
     async fetch(request, env) {
@@ -97,19 +98,41 @@ async function createSubmission(request, env, headers) {
 
 // The player name comes from the logged-in account, never from the form
 async function validate(body, env, player) {
-    const level = typeof body.level === 'string' ? body.level : '';
-    if (!LEVEL_PATH.test(level)) {
-        return { error: 'Choose a level from the list.' };
+    // A level that isn't on the list yet: the owner reviews it, then adds the level file
+    const isNew = body.level === NEW_LEVEL;
+    let level = 'new';
+    let levelName = '';
+    let newLevel = null;
+    if (isNew) {
+        const details = body.newLevel || {};
+        levelName = typeof details.name === 'string' ? details.name.trim() : '';
+        if (levelName.length < 1 || levelName.length > 60) {
+            return { error: 'New level name must be 1 to 60 characters.' };
+        }
+        const id = Number(details.id);
+        if (!Number.isInteger(id) || id < 1) {
+            return { error: 'New level needs its Geometry Dash level ID (a whole number).' };
+        }
+        const creator = typeof details.creator === 'string' ? details.creator.trim() : '';
+        if (creator.length < 1 || creator.length > 32) {
+            return { error: 'New level needs a creator name (1 to 32 characters).' };
+        }
+        newLevel = { id, creator };
+    } else {
+        level = typeof body.level === 'string' ? body.level : '';
+        if (!LEVEL_PATH.test(level)) {
+            return { error: 'Choose a level from the list.' };
+        }
+        const list = await (await fetch(`${env.SITE_URL}/data/_list.json`)).json();
+        if (!list.includes(level)) {
+            return { error: 'That level is not on the list.' };
+        }
+        const levelFile = await fetch(`${env.SITE_URL}/data/${level}.json`);
+        if (!levelFile.ok) {
+            return { error: 'That level is not on the list.' };
+        }
+        levelName = (await levelFile.json()).name;
     }
-    const list = await (await fetch(`${env.SITE_URL}/data/_list.json`)).json();
-    if (!list.includes(level)) {
-        return { error: 'That level is not on the list.' };
-    }
-    const levelFile = await fetch(`${env.SITE_URL}/data/${level}.json`);
-    if (!levelFile.ok) {
-        return { error: 'That level is not on the list.' };
-    }
-    const levelName = (await levelFile.json()).name;
 
     const link = typeof body.link === 'string' ? body.link.trim() : '';
     if (!YOUTUBE_LINK.test(link)) {
@@ -131,7 +154,16 @@ async function validate(body, env, player) {
     }
 
     return {
-        record: { player, level, levelName, link, percent, hz, device: body.device },
+        record: {
+            player,
+            level,
+            levelName,
+            link,
+            percent,
+            hz,
+            device: body.device,
+            ...(newLevel ? { isNew: true, levelId: newLevel.id, creator: newLevel.creator } : {}),
+        },
     };
 }
 

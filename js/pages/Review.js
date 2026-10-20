@@ -52,6 +52,7 @@ export default {
                     <p class="submit-error" v-if="error">{{ error }}</p>
                     <article v-for="s in submissions" :key="s.id" class="submission" :class="s.status">
                         <h2 class="type-title-sm">{{ s.player }} · {{ s.levelName }} · {{ s.percent }}%</h2>
+                        <p class="type-label-md" v-if="s.isNew">New level, not on the list yet: ID {{ s.levelId }}, by {{ s.creator }}.</p>
                         <p class="type-label-md"><a :href="s.link" target="_blank">{{ s.link }}</a></p>
                         <p class="type-label-md">{{ s.device }} · {{ s.hz ? s.hz + 'Hz' : 'no refresh rate given' }} · {{ new Date(s.submittedAt).toLocaleString() }} · {{ s.status }}</p>
                         <div v-if="s.status === 'pending'" class="review-actions">
@@ -59,7 +60,8 @@ export default {
                             <button class="submit-button type-label-lg" @click="decide(s, 'rejected')">Reject</button>
                         </div>
                         <div v-if="s.status === 'accepted'" class="review-accepted">
-                            <p class="type-label-md">Add this to the <code>records</code> list in <code>data/{{ s.level }}.json</code>:</p>
+                            <p class="type-label-md" v-if="!s.isNew">Add this to the <code>records</code> list in <code>data/{{ s.level }}.json</code>:</p>
+                            <p class="type-label-md" v-else>Create a level file for it first (name, ID {{ s.levelId }}, creator {{ s.creator }}, and the video), add it to <code>data/_list.json</code>, then add this record to its <code>records</code>:</p>
                             <pre class="record-snippet">{{ recordSnippet(s) }}</pre>
                             <button class="submit-button type-label-lg" @click="copy(s)">{{ copiedId === s.id ? 'Copied' : 'Copy record' }}</button>
                         </div>

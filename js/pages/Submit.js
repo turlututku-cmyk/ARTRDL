@@ -6,7 +6,18 @@ export default {
     data: () => ({
         store,
         levels: [],
-        form: { player: store.username, level: '', link: '', percent: 100, hz: '', device: 'pc', website: '' },
+        form: {
+            player: store.username,
+            level: '',
+            newName: '',
+            newId: '',
+            newCreator: '',
+            link: '',
+            percent: 100,
+            hz: '',
+            device: 'pc',
+            website: '',
+        },
         sending: false,
         sent: false,
         error: '',
@@ -27,8 +38,23 @@ export default {
                         <select v-model="form.level" required>
                             <option value="" disabled>Choose a level</option>
                             <option v-for="level in levels" :key="level.path" :value="level.path">{{ level.name }}</option>
+                            <option value="__new__">New level (not on the list yet)</option>
                         </select>
                     </label>
+                    <template v-if="form.level === '__new__'">
+                        <label class="field">
+                            <span class="type-label-lg">New level name</span>
+                            <input v-model.trim="form.newName" maxlength="60" required>
+                        </label>
+                        <label class="field">
+                            <span class="type-label-lg">Geometry Dash level ID</span>
+                            <input v-model.number="form.newId" type="number" min="1" required>
+                        </label>
+                        <label class="field">
+                            <span class="type-label-lg">Creator</span>
+                            <input v-model.trim="form.newCreator" maxlength="32" required>
+                        </label>
+                    </template>
                     <label class="field">
                         <span class="type-label-lg">Video link (YouTube)</span>
                         <input v-model.trim="form.link" type="url" placeholder="https://www.youtube.com/watch?v=..." required>
@@ -77,6 +103,9 @@ export default {
                     body: JSON.stringify({
                         ...this.form,
                         hz: this.form.hz === '' ? null : this.form.hz,
+                        newLevel: this.form.level === '__new__'
+                            ? { name: this.form.newName, id: this.form.newId, creator: this.form.newCreator }
+                            : null,
                     }),
                 });
                 const data = await response.json().catch(() => ({}));
