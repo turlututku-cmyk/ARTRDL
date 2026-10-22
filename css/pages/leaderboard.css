@@ -129,3 +129,22 @@
     color: #fff;
     font-weight: 700;
 }
+.page-leaderboard .board-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    background: var(--color-background-hover);
+}
+.page-leaderboard .board-rules ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-left: 1.25rem;
+    list-style: disc;
+}
+.page-leaderboard .board-rules li {
+    line-height: 1.5;
+}

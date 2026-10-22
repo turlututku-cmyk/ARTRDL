@@ -51,6 +51,16 @@ export default {
                         </tr>
                     </table>
                     <p v-else class="board-empty">No players match "{{ search }}".</p>
+                    <section class="board-rules">
+                        <h3>How points work</h3>
+                        <ul>
+                            <li>A level's points depend on its place on the list. Higher places are worth more.</li>
+                            <li>Harder levels are worth more: Medium 1.5x, Hard 2.5x, Insane 4x, Extreme 5x. Easy is 1x.</li>
+                            <li>A verification counts once, as verified. It doesn't add a second completion.</li>
+                            <li>Partial records (below 100%) score less than a full completion.</li>
+                            <li>Levels below the main list only give points at 100%. Legacy levels give no points.</li>
+                        </ul>
+                    </section>
                 </div>
                 <div class="player-container">
                     <div class="player">
