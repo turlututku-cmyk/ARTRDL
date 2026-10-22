@@ -6,13 +6,24 @@ import { MAIN_LIST_END, EXTENDED_LIST_END } from './config.js';
 const scale = 0;
 
 /**
+ * Points multiplier for a difficulty band. Harder levels are worth more.
+ * @param {String} band 'easy', 'medium', 'hard', 'insane' or 'extreme'
+ * @returns {Number}
+ */
+export function bandMultiplier(band) {
+    const multipliers = { easy: 1, medium: 1.5, hard: 2.5, insane: 4, extreme: 5 };
+    return multipliers[band] ?? 1;
+}
+
+/**
  * Calculate the score awarded when having a certain percentage on a list level
  * @param {Number} rank Position on the list
  * @param {Number} percent Percentage of completion
  * @param {Number} minPercent Minimum percentage required
+ * @param {Number} multiplier Band multiplier (see bandMultiplier)
  * @returns {Number}
  */
-export function score(rank, percent, minPercent) {
+export function score(rank, percent, minPercent, multiplier = 1) {
     if (rank > EXTENDED_LIST_END) {
         return 0;
     }
@@ -29,7 +40,7 @@ export function score(rank, percent, minPercent) {
     let score = (-24.9975*Math.pow(rank-1, 0.4) + 250) *
         ((percent - (minPercent - 1)) / (100 - (minPercent - 1)));
 
-    score = Math.max(0, score);
+    score = Math.max(0, score) * multiplier;
 
     if (percent != 100) {
         return round(score - score / 3);

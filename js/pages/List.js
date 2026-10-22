@@ -1,6 +1,6 @@
 import { store } from "../main.js";
 import { embed, deviceIcon, deviceLabel, difficultyIcon, difficultyLabel, tierBand, tierBandLabel } from "../util.js";
-import { score } from "../score.js";
+import { score, bandMultiplier } from "../score.js";
 import { fetchEditors, fetchGddl, fetchList } from "../content.js";
 import { MAIN_LIST_END, EXTENDED_LIST_END } from "../config.js";
 
@@ -54,7 +54,7 @@ export default {
                     <ul class="stats">
                         <li>
                             <div class="type-title-sm">Points when completed</div>
-                            <p>{{ score(selected + 1, 100, level.percentToQualify) }}</p>
+                            <p>{{ score(selected + 1, 100, level.percentToQualify, bandMultiplier(level.band)) }}</p>
                         </li>
                         <li>
                             <div class="type-title-sm">ID</div>
@@ -244,6 +244,7 @@ export default {
     methods: {
         embed,
         score,
+        bandMultiplier,
         deviceIcon: (device) => deviceIcon(device, store.dark),
         deviceLabel,
         difficultyIcon,

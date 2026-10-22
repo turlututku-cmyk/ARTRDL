@@ -1,4 +1,5 @@
-import { round, score } from './score.js';
+import { round, score, bandMultiplier } from './score.js';
+import { tierBand } from './util.js';
 import { SUBMISSION_API } from './config.js';
 
 /**
@@ -94,6 +95,7 @@ function mergeRecords(fileRecords, acceptedRecords = []) {
 export async function fetchList(file = '_list') {
     const listResult = await fetch(`${dir}/${file}.json`);
     const accepted = await fetchAcceptedRecords();
+    const tiers = await fetchGddlTiers();
     try {
         const list = await listResult.json();
         const entries = await Promise.all(
@@ -115,7 +117,11 @@ export async function fetchList(file = '_list') {
                 }
             }),
         );
-        addNewLevels(entries, accepted.newLevels, await fetchGddlTiers());
+        addNewLevels(entries, accepted.newLevels, tiers);
+        // A level's difficulty band (from its GDDL tier) sets its points multiplier
+        for (const [level] of entries) {
+            if (level && tiers[level.path]?.tier != null) level.band = tierBand(tiers[level.path].tier);
+        }
         return entries;
     } catch {
         console.error(`Failed to load list.`);
@@ -193,7 +199,7 @@ export async function fetchLeaderboard() {
                 level: level.name,
                 path: level.path,
                 device: level.device,
-                score: score(rank + 1, 100, level.percentToQualify),
+                score: score(rank + 1, 100, level.percentToQualify, bandMultiplier(level.band)),
                 link: level.verification,
             });
         }
@@ -217,7 +223,7 @@ export async function fetchLeaderboard() {
                     level: level.name,
                     path: level.path,
                     device: record.device,
-                    score: score(rank + 1, 100, level.percentToQualify),
+                    score: score(rank + 1, 100, level.percentToQualify, bandMultiplier(level.band)),
                     link: record.link,
                 });
                 return;
@@ -229,7 +235,7 @@ export async function fetchLeaderboard() {
                 path: level.path,
                 device: record.device,
                 percent: record.percent,
-                score: score(rank + 1, record.percent, level.percentToQualify),
+                score: score(rank + 1, record.percent, level.percentToQualify, bandMultiplier(level.band)),
                 link: record.link,
             });
         });
