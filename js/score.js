@@ -16,6 +16,11 @@ export function bandMultiplier(band) {
 }
 
 /**
+ * Bonus for completing a pack: this share of the points from its levels is added to the total
+ */
+export const PACK_BONUS = 0.1;
+
+/**
  * Calculate the score awarded when having a certain percentage on a list level
  * @param {Number} rank Position on the list
  * @param {Number} percent Percentage of completion

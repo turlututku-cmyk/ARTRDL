@@ -1,4 +1,4 @@
-import { round, score, bandMultiplier } from './score.js';
+import { round, score, bandMultiplier, PACK_BONUS } from './score.js';
 import { tierBand } from './util.js';
 import { SUBMISSION_API } from './config.js';
 
@@ -174,6 +174,7 @@ function isOwnVerification(level, record) {
 
 export async function fetchLeaderboard() {
     const list = await fetchList();
+    const packs = (await fetchPacks()) || [];
 
     const scoreMap = {};
     const errs = [];
@@ -244,13 +245,28 @@ export async function fetchLeaderboard() {
     // Wrap in extra Object containing the user and total score
     const res = Object.entries(scoreMap).map(([user, scores]) => {
         const { verified, completed, progressed } = scores;
-        const total = [verified, completed, progressed]
+        const base = [verified, completed, progressed]
             .flat()
             .reduce((prev, cur) => prev + cur.score, 0);
 
+        // Best points per 100% level, counting each level once, for the pack bonuses
+        const beaten = new Map();
+        [...verified, ...completed].forEach((s) => {
+            beaten.set(s.path, Math.max(beaten.get(s.path) ?? 0, s.score));
+        });
+        const packsBeaten = packs
+            .filter((pack) => pack.levels.length > 0 && pack.levels.every((path) => beaten.has(path)))
+            .map((pack) => {
+                const levelPoints = pack.levels.reduce((sum, path) => sum + beaten.get(path), 0);
+                return { name: pack.name, color: pack.color, bonus: round(levelPoints * PACK_BONUS) };
+            });
+        const packBonus = packsBeaten.reduce((sum, pack) => sum + pack.bonus, 0);
+
         return {
             user,
-            total: round(total),
+            total: round(base + packBonus),
+            packBonus,
+            packsBeaten,
             ...scores,
         };
     });

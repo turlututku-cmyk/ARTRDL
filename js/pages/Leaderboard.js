@@ -58,6 +58,7 @@ export default {
                             <li>Harder levels are worth more: Medium 1.5x, Hard 2.5x, Insane 4x, Extreme 5x. Easy is 1x.</li>
                             <li>A verification counts once, as verified. It doesn't add a second completion.</li>
                             <li>Partial records (below 100%) score less than a full completion.</li>
+                            <li>Completing a pack adds 10% of its levels' points as a bonus.</li>
                             <li>Levels below the main list only give points at 100%. Legacy levels give no points.</li>
                         </ul>
                     </section>
@@ -125,7 +126,7 @@ export default {
                                 :key="pack.name"
                                 class="player-pack-chip type-label-lg"
                                 :style="{ '--pack-color': pack.color || 'var(--color-primary)' }"
-                            >{{ pack.name }}</span>
+                            >{{ pack.name }} +{{ localize(pack.bonus) }}</span>
                         </div>
                     </div>
                 </div>
@@ -143,11 +144,7 @@ export default {
             return this.leaderboard[this.selected];
         },
         beatenPacks() {
-            if (!this.entry) return [];
-            const done = new Set(
-                [...this.entry.verified, ...this.entry.completed].map((s) => s.path),
-            );
-            return this.packs.filter((pack) => pack.levels.every((path) => done.has(path)));
+            return this.entry ? this.entry.packsBeaten : [];
         },
     },
     async mounted() {

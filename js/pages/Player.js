@@ -105,7 +105,7 @@ export default {
                                 v-for="pack in beatenPacks"
                                 :key="pack.name"
                                 :style="{ '--pack-color': pack.color || 'var(--list-red)' }"
-                            >{{ pack.name }}</span>
+                            >{{ pack.name }} +{{ localize(pack.bonus) }}</span>
                         </div>
                     </section>
                 </div>
@@ -141,9 +141,7 @@ export default {
             return `#${best.rank} ${best.level}`;
         },
         beatenPacks() {
-            if (!this.entry) return [];
-            const done = new Set([...this.entry.verified, ...this.entry.completed].map((s) => s.path));
-            return this.packs.filter((pack) => pack.levels.every((path) => done.has(path)));
+            return this.entry ? this.entry.packsBeaten : [];
         },
         tabs() {
             if (!this.entry) return [];
